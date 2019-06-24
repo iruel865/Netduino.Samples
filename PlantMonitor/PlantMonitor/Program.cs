@@ -1,5 +1,3 @@
-using System;
-using Microsoft.SPOT;
 using System.Threading;
 
 namespace PlantMonitor
@@ -8,8 +6,8 @@ namespace PlantMonitor
     {
         public static void Main()
         {
-            Debug.Print("Hello World!");
-
+            App app = new App();
+            app.Run();
             Thread.Sleep(Timeout.Infinite);
         }
     }
