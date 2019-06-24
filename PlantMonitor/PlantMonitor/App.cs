@@ -1,14 +1,16 @@
 using Netduino.Foundation.Displays;
 using Netduino.Foundation.LEDs;
+using Netduino.Foundation.RTCs;
 using N = SecretLabs.NETMF.Hardware.Netduino;
 
 namespace PlantMonitor
 {
     public class App
     {
-        protected RgbPwmLed rgbLed;
-        protected GraphicsLibrary graphics;
-
+        protected DS3231 dS3231;
+        protected RgbPwmLed rgbPwmLed;
+        protected GraphicsLibrary graphicsLibrary;
+        
         public App()
         {
             InitializePeripherals();
@@ -16,7 +18,10 @@ namespace PlantMonitor
 
         private void InitializePeripherals()
         {
-            rgbLed = new RgbPwmLed
+            dS3231 = new DS3231(0x68, 100);
+            //dS3231.CurrentDateTime = new DateTime(2019, 6, 23, 23, 43, 00);
+
+            rgbPwmLed = new RgbPwmLed
             (
                 redPin:   N.PWMChannels.PWM_PIN_D11,
                 greenPin: N.PWMChannels.PWM_PIN_D10,
@@ -25,20 +30,20 @@ namespace PlantMonitor
                 greenLedForwardVoltage: 1.5f,
                 blueLedForwardVoltage: 1.5f
             );
+            rgbPwmLed.SetColor(Netduino.Foundation.Color.Red);
 
-            var display = new SSD1306(0x3c, 400, SSD1306.DisplayType.OLED128x32);
-            graphics = new GraphicsLibrary(display);
-
-            rgbLed.SetColor(Netduino.Foundation.Color.Red);
+            var display = new SSD1306(0x3C, 400, SSD1306.DisplayType.OLED128x32);
+            graphicsLibrary = new GraphicsLibrary(display);
         }
 
         public void Run()
         {
-            rgbLed.SetColor(Netduino.Foundation.Color.Green);
+            rgbPwmLed.SetColor(Netduino.Foundation.Color.Green);
 
-            graphics.CurrentFont = new Font8x12();
-            graphics.DrawText(0, 0, "Hello World!");
-            graphics.Show();
+            graphicsLibrary.DrawRectangle(0, 0, 128, 32);
+            graphicsLibrary.CurrentFont = new Font8x12();
+            graphicsLibrary.DrawText(8, 12, dS3231.CurrentDateTime.ToString("HH:mm dd/MM/yy"));
+            graphicsLibrary.Show();
         }
     }
 }

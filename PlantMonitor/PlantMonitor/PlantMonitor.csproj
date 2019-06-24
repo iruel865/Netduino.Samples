@@ -59,6 +59,10 @@
       <HintPath>..\packages\Netduino.Foundation.SSD1306.0.15.743\lib\netmf43\Netduino.Foundation.Displays.SSD1306.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Netduino.Foundation.RTCs.DS323x, Version=0.29.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Netduino.Foundation.DS323x.0.29.743\lib\netmf43\Netduino.Foundation.RTCs.DS323x.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="SecretLabs.NETMF.Hardware.Netduino, Version=4.3.1.0, Culture=neutral, processorArchitecture=MSIL" />
   </ItemGroup>
   <ItemGroup>
