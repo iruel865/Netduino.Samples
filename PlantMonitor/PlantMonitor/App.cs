@@ -1,6 +1,7 @@
 using Netduino.Foundation.Displays;
 using Netduino.Foundation.LEDs;
 using Netduino.Foundation.RTCs;
+using System.Threading;
 using N = SecretLabs.NETMF.Hardware.Netduino;
 
 namespace PlantMonitor
@@ -10,7 +11,7 @@ namespace PlantMonitor
         protected DS3231 dS3231;
         protected RgbPwmLed rgbPwmLed;
         protected GraphicsLibrary graphicsLibrary;
-        
+
         public App()
         {
             InitializePeripherals();
@@ -26,9 +27,9 @@ namespace PlantMonitor
                 redPin:   N.PWMChannels.PWM_PIN_D11,
                 greenPin: N.PWMChannels.PWM_PIN_D10,
                 bluePin:  N.PWMChannels.PWM_PIN_D9,
-                redLedForwardVoltage: 1.05f,
+                redLedForwardVoltage:   1.05f,
                 greenLedForwardVoltage: 1.5f,
-                blueLedForwardVoltage: 1.5f
+                blueLedForwardVoltage:  1.5f
             );
             rgbPwmLed.SetColor(Netduino.Foundation.Color.Red);
 
@@ -40,9 +41,28 @@ namespace PlantMonitor
         {
             rgbPwmLed.SetColor(Netduino.Foundation.Color.Green);
 
+            AppLoop();
+        }
+
+        private void AppLoop()
+        {
+            Thread thread = new Thread(() =>
+            {                
+                while (true)
+                {
+                    Thread.Sleep(500);
+                    DrawText();
+                }
+            });
+            thread.Start();
+        }
+
+        private void DrawText()
+        {
+            graphicsLibrary.Clear();
             graphicsLibrary.DrawRectangle(0, 0, 128, 32);
             graphicsLibrary.CurrentFont = new Font8x12();
-            graphicsLibrary.DrawText(8, 12, dS3231.CurrentDateTime.ToString("HH:mm dd/MM/yy"));
+            graphicsLibrary.DrawText(20, 12, dS3231.CurrentDateTime.ToString("hh:mm:ss tt"));
             graphicsLibrary.Show();
         }
     }
