@@ -1,5 +1,7 @@
+using Microsoft.SPOT;
 using Netduino.Foundation.Displays;
 using Netduino.Foundation.LEDs;
+using Netduino.Foundation.Network;
 using Netduino.Foundation.RTCs;
 using System.Threading;
 using N = SecretLabs.NETMF.Hardware.Netduino;
@@ -31,7 +33,7 @@ namespace PlantMonitor
                 greenLedForwardVoltage: 1.5f,
                 blueLedForwardVoltage:  1.5f
             );
-            rgbPwmLed.SetColor(Netduino.Foundation.Color.Red);
+            rgbPwmLed.StartPulse(Netduino.Foundation.Color.Red);
 
             var display = new SSD1306(0x3C, 400, SSD1306.DisplayType.OLED128x32);
             graphicsLibrary = new GraphicsLibrary(display);
@@ -39,11 +41,20 @@ namespace PlantMonitor
 
         public void Run()
         {
+            Initializer.InitializeNetwork();
+            Initializer.NetworkConnected += OnNetworkConnected;
+        }
+        private void OnNetworkConnected(object sender, EventArgs e)
+        {
+            //_timerCallback = new TimerCallback(OnTimerInterrupt);
+            //_timer = new Timer(_timerCallback, null, TimeSpan.FromTicks(0), new TimeSpan(0, 30, 0));
+            //_server.Start("PlantHost", Initializer.CurrentNetworkInterface.IPAddress);
+            //_rgbPwmLed.SetColor(Netduino.Foundation.Color.Green);
+
             rgbPwmLed.SetColor(Netduino.Foundation.Color.Green);
 
             AppLoop();
         }
-
         private void AppLoop()
         {
             Thread thread = new Thread(() =>
