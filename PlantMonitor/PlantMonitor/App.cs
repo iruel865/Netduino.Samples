@@ -3,26 +3,37 @@ using Netduino.Foundation.Displays;
 using Netduino.Foundation.LEDs;
 using Netduino.Foundation.Network;
 using Netduino.Foundation.RTCs;
+using System.Collections;
 using System.Threading;
+using Maple;
 using N = SecretLabs.NETMF.Hardware.Netduino;
+using System;
 
 namespace PlantMonitor
 {
     public class App
     {
+        public static ArrayList HumidityLogs;
+
         protected DS3231 dS3231;
-        protected RgbPwmLed rgbPwmLed;
-        protected GraphicsLibrary graphicsLibrary;
+        protected RgbPwmLed rgbPwmLed;        
+
+        protected Timer timer = null;
+        protected TimerCallback timerCallback = null;
+
+        protected MapleServer mapleServer;
+        protected DisplayController displayController;
+        protected HumiditySensorController humiditySensorController;
 
         public App()
         {
             InitializePeripherals();
+            InitializeWebServer();
         }
-
-        private void InitializePeripherals()
+        void InitializePeripherals()
         {
             dS3231 = new DS3231(0x68, 100);
-            //dS3231.CurrentDateTime = new DateTime(2019, 6, 23, 23, 43, 00);
+            dS3231.CurrentDateTime = new DateTime(2019, 6, 26, 22, 35, 00);
 
             rgbPwmLed = new RgbPwmLed
             (
@@ -35,46 +46,69 @@ namespace PlantMonitor
             );
             rgbPwmLed.StartPulse(Netduino.Foundation.Color.Red);
 
-            var display = new SSD1306(0x3C, 400, SSD1306.DisplayType.OLED128x32);
-            graphicsLibrary = new GraphicsLibrary(display);
+            displayController = new DisplayController();
+
+            humiditySensorController = new HumiditySensorController
+            (
+                N.Pins.GPIO_PIN_A0,
+                N.Pins.GPIO_PIN_D7
+            );
+        }
+        void InitializeWebServer()
+        {
+            var handler = new RequestHandler();
+            handler.GetPlantHumidity += OnGetPlantHumidity;
+
+            mapleServer = new MapleServer();
+            mapleServer.AddHandler(handler);
+        }
+        void OnGetPlantHumidity(object sender, EventArgs e)
+        {
+            Thread _animationThread = new Thread(() =>
+            {
+                rgbPwmLed.StartBlink(Netduino.Foundation.Color.Orange);
+                Thread.Sleep(1000);
+                rgbPwmLed.SetColor(Netduino.Foundation.Color.Green);
+            });
+            _animationThread.Start();
         }
 
         public void Run()
         {
             Initializer.InitializeNetwork();
             Initializer.NetworkConnected += OnNetworkConnected;
+
+            //displayController.DrawText("Connecting...");
+            //Thread.Sleep(3000);
         }
-        private void OnNetworkConnected(object sender, EventArgs e)
+        void OnNetworkConnected(object sender, EventArgs e)
         {
             //_timerCallback = new TimerCallback(OnTimerInterrupt);
             //_timer = new Timer(_timerCallback, null, TimeSpan.FromTicks(0), new TimeSpan(0, 30, 0));
             //_server.Start("PlantHost", Initializer.CurrentNetworkInterface.IPAddress);
             //_rgbPwmLed.SetColor(Netduino.Foundation.Color.Green);
 
+            //for(int i=0; i > 3; i++)
+            //{
+            //displayController.DrawText("Connected!");
+            //Thread.Sleep(3000);
+            //}
+
             rgbPwmLed.SetColor(Netduino.Foundation.Color.Green);
 
             AppLoop();
         }
-        private void AppLoop()
+        void AppLoop()
         {
             Thread thread = new Thread(() =>
             {                
                 while (true)
                 {
                     Thread.Sleep(500);
-                    DrawText();
+                    displayController.DrawText(dS3231.CurrentDateTime.ToString("hh:mm:ss tt"));
                 }
             });
             thread.Start();
-        }
-
-        private void DrawText()
-        {
-            graphicsLibrary.Clear();
-            graphicsLibrary.DrawRectangle(0, 0, 128, 32);
-            graphicsLibrary.CurrentFont = new Font8x12();
-            graphicsLibrary.DrawText(20, 12, dS3231.CurrentDateTime.ToString("hh:mm:ss tt"));
-            graphicsLibrary.Show();
-        }
+        }        
     }
 }
