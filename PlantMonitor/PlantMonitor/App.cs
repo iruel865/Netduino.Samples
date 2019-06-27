@@ -29,11 +29,14 @@ namespace PlantMonitor
         {
             InitializePeripherals();
             InitializeWebServer();
+
+            Initializer.InitializeNetwork();
+            Initializer.NetworkConnected += OnNetworkConnected;
         }
         void InitializePeripherals()
         {
             dS3231 = new DS3231(0x68, 100);
-            dS3231.CurrentDateTime = new DateTime(2019, 6, 26, 22, 35, 00);
+            dS3231.CurrentDateTime = new DateTime(2019, 6, 26, 23, 20, 00);
 
             rgbPwmLed = new RgbPwmLed
             (
@@ -47,6 +50,7 @@ namespace PlantMonitor
             rgbPwmLed.StartPulse(Netduino.Foundation.Color.Red);
 
             displayController = new DisplayController();
+            displayController.DrawText("Connecting...");
 
             humiditySensorController = new HumiditySensorController
             (
@@ -73,26 +77,15 @@ namespace PlantMonitor
             _animationThread.Start();
         }
 
-        public void Run()
-        {
-            Initializer.InitializeNetwork();
-            Initializer.NetworkConnected += OnNetworkConnected;
-
-            //displayController.DrawText("Connecting...");
-            //Thread.Sleep(3000);
-        }
         void OnNetworkConnected(object sender, EventArgs e)
         {
             //_timerCallback = new TimerCallback(OnTimerInterrupt);
             //_timer = new Timer(_timerCallback, null, TimeSpan.FromTicks(0), new TimeSpan(0, 30, 0));
-            //_server.Start("PlantHost", Initializer.CurrentNetworkInterface.IPAddress);
-            //_rgbPwmLed.SetColor(Netduino.Foundation.Color.Green);
+            //_server.Start("PlantHost", Initializer.CurrentNetworkInterface.IPAddress);            
 
-            //for(int i=0; i > 3; i++)
-            //{
-            //displayController.DrawText("Connected!");
-            //Thread.Sleep(3000);
-            //}
+            displayController.Clear(true);
+            displayController.DrawText("Connected!");
+            Thread.Sleep(1000);
 
             rgbPwmLed.SetColor(Netduino.Foundation.Color.Green);
 
@@ -100,6 +93,8 @@ namespace PlantMonitor
         }
         void AppLoop()
         {
+            displayController.Clear(true);
+
             Thread thread = new Thread(() =>
             {                
                 while (true)

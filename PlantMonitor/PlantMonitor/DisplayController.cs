@@ -13,7 +13,7 @@ namespace PlantMonitor
         {
             var display = new SSD1306(0x3C, 400, SSD1306.DisplayType.OLED128x32);
             graphicsLibrary = new GraphicsLibrary(display);
-            graphicsLibrary.Clear();
+            graphicsLibrary.Clear(true);
         }
 
         public void DrawText(string text)
@@ -26,6 +26,11 @@ namespace PlantMonitor
 
             graphicsLibrary.DrawText(x, 12, text);
             graphicsLibrary.Show();
+        }
+
+        public void Clear(bool updateDisplay = false)
+        {
+            graphicsLibrary.Clear(updateDisplay);
         }
     }
 }
