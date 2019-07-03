@@ -67,11 +67,11 @@ namespace PlantMonitor
             displayController = new DisplayController();
             displayController.DrawText("Connecting...");
 
-            //humiditySensorController = new HumiditySensorController
-            //(
-            //    N.Pins.GPIO_PIN_A0,
-            //    N.Pins.GPIO_PIN_D7
-            //);
+            humiditySensorController = new HumiditySensorController
+            (
+                N.Pins.GPIO_PIN_A0,
+                N.Pins.GPIO_PIN_D13
+            );
         }
         void InitializeWebServer()
         {
@@ -111,25 +111,53 @@ namespace PlantMonitor
         {
             Thread thread = new Thread(() =>
             {
-                bool state = true;
+                float percentage = 0f;
+
+                //while (true)
+                //{
+                //percentage = 0f;
+                //while (percentage <= 1)
+                //{
+                //    ledBarGraph.Percentage = percentage;
+                //    Thread.Sleep(500);
+                //    percentage += 0.1f;
+                //}
+
+                //percentage = 1f;
+                //while (percentage >= 0)
+                //{
+                //    
+                //    Thread.Sleep(500);
+                //    percentage -= 0.1f;
+                //}
+
+                //for (int i = 0; i < ledBarGraph.Count; i++)
+                //{
+                //    ledBarGraph.SetLed(i, state);
+                //    Thread.Sleep(500);
+                //}
+
+                //state = false;
+                //for (int i = ledBarGraph.Count - 1; i >= 0; i--)
+                //{
+                //    ledBarGraph.SetLed(i, state);
+                //    Thread.Sleep(500);
+                //}
+                //}
 
                 while (true)
                 {
-                    state = true;
+                    float humidity = (humiditySensorController.Read() / 100);
 
-                    for (int i = 0; i < ledBarGraph.Count; i++)
-                    {
-                        ledBarGraph.SetLed(i, state);
-                        Thread.Sleep(500);
-                    }
+                    if (humidity > 1)
+                        ledBarGraph.Percentage = 1;
+                    else if (humidity < 0)
+                        ledBarGraph.Percentage = 0;
+                    else
+                        ledBarGraph.Percentage = humidity;
 
-                    state = false;
-
-                    for (int i = ledBarGraph.Count - 1; i >= 0 ; i--)
-                    {
-                        ledBarGraph.SetLed(i, state);
-                        Thread.Sleep(500);
-                    }
+                    Debug.Print("Humidity = " + humiditySensorController.Read());
+                    Thread.Sleep(500);
                 }
             });
             thread.Start();
