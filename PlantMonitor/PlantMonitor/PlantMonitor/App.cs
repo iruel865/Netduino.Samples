@@ -15,8 +15,8 @@ namespace PlantMonitor
     {
         public static ArrayList HumidityLogs;
 
-        protected DS3231 dS3231;
-        protected RgbPwmLed rgbPwmLed;        
+        protected RgbPwmLed rgbPwmLed;
+        protected LedBarGraph ledBarGraph;
 
         protected Timer timer = null;
         protected TimerCallback timerCallback = null;
@@ -28,15 +28,30 @@ namespace PlantMonitor
         public App()
         {
             InitializePeripherals();
-            InitializeWebServer();
+            //InitializeWebServer();
 
-            Initializer.InitializeNetwork();
-            Initializer.NetworkConnected += OnNetworkConnected;
+            //Initializer.InitializeNetwork();
+            //Initializer.NetworkConnected += OnNetworkConnected;
+
+            AppLoop();
         }
         void InitializePeripherals()
         {
-            dS3231 = new DS3231(0x68, 100);
-            dS3231.CurrentDateTime = new DateTime(2019, 6, 26, 23, 20, 00);
+            ledBarGraph = new LedBarGraph(
+                new Microsoft.SPOT.Hardware.Cpu.Pin[10] 
+                {
+                    N.Pins.GPIO_PIN_D0,
+                    N.Pins.GPIO_PIN_D1,
+                    N.Pins.GPIO_PIN_D2,
+                    N.Pins.GPIO_PIN_D3,
+                    N.Pins.GPIO_PIN_D4,
+                    N.Pins.GPIO_PIN_D5,
+                    N.Pins.GPIO_PIN_D6,
+                    N.Pins.GPIO_PIN_D7,
+                    N.Pins.GPIO_PIN_D8,
+                    N.Pins.GPIO_PIN_D12
+                }
+            );
 
             rgbPwmLed = new RgbPwmLed
             (
@@ -52,11 +67,11 @@ namespace PlantMonitor
             displayController = new DisplayController();
             displayController.DrawText("Connecting...");
 
-            humiditySensorController = new HumiditySensorController
-            (
-                N.Pins.GPIO_PIN_A0,
-                N.Pins.GPIO_PIN_D7
-            );
+            //humiditySensorController = new HumiditySensorController
+            //(
+            //    N.Pins.GPIO_PIN_A0,
+            //    N.Pins.GPIO_PIN_D7
+            //);
         }
         void InitializeWebServer()
         {
@@ -81,7 +96,7 @@ namespace PlantMonitor
         {
             //_timerCallback = new TimerCallback(OnTimerInterrupt);
             //_timer = new Timer(_timerCallback, null, TimeSpan.FromTicks(0), new TimeSpan(0, 30, 0));
-            //_server.Start("PlantHost", Initializer.CurrentNetworkInterface.IPAddress);            
+            mapleServer.Start("PlantHost", Initializer.CurrentNetworkInterface.IPAddress);            
 
             displayController.Clear(true);
             displayController.DrawText("Connected!");
@@ -89,18 +104,32 @@ namespace PlantMonitor
 
             rgbPwmLed.SetColor(Netduino.Foundation.Color.Green);
 
-            AppLoop();
+            //AppLoop();
         }
+
         void AppLoop()
         {
-            displayController.Clear(true);
-
             Thread thread = new Thread(() =>
-            {                
+            {
+                bool state = true;
+
                 while (true)
                 {
-                    Thread.Sleep(500);
-                    displayController.DrawText(dS3231.CurrentDateTime.ToString("hh:mm:ss tt"));
+                    state = true;
+
+                    for (int i = 0; i < ledBarGraph.Count; i++)
+                    {
+                        ledBarGraph.SetLed(i, state);
+                        Thread.Sleep(500);
+                    }
+
+                    state = false;
+
+                    for (int i = ledBarGraph.Count - 1; i >= 0 ; i--)
+                    {
+                        ledBarGraph.SetLed(i, state);
+                        Thread.Sleep(500);
+                    }
                 }
             });
             thread.Start();
