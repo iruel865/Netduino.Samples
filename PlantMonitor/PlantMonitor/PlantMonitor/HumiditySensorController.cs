@@ -25,7 +25,7 @@ namespace PlantMonitor
             sample = _analogPort.Read();
             _digitalPort.Write(false);
 
-            humidity = 100 - Map(sample, 250, 1023, 0, 100);
+            humidity = 100 - Map(sample, 500, 1023, 0, 100);
             return humidity;
         }
 
