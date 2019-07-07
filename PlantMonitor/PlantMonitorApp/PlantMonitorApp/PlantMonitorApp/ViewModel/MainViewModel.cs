@@ -111,10 +111,12 @@ namespace PlantMonitorApp
             var humitidyLogs = await plantClient.GetHumidityAsync(SelectedServer);
             foreach (var log in humitidyLogs)
             {
+                int humidity = (int) log.Humidity * 100;
+
                 LevelList.Insert(0, new HumidityModel()
                 {
-                    Humidity = log.Humidity,
-                    Level = (log.Humidity >= 0.75) ? HIGH : (log.Humidity >= 0.5) ? MEDIUM : LOW,
+                    Humidity = humidity,
+                    Level = (humidity >= 75) ? HIGH : (humidity >= 50) ? MEDIUM : LOW,
                     Date = DateTime.Now.ToString("hh:mm tt dd/MMM/yyyy")
                 });
             }
