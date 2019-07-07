@@ -88,9 +88,13 @@ namespace PlantMonitor
         {
             Thread _animationThread = new Thread(() =>
             {
+                displayController.DrawText("Sensing...");
+
                 rgbPwmLed.StartBlink(Netduino.Foundation.Color.Orange);
                 Thread.Sleep(1000);
                 rgbPwmLed.SetColor(Netduino.Foundation.Color.Green);
+
+                displayController.DrawText("Connected!");
             });
             _animationThread.Start();
         }

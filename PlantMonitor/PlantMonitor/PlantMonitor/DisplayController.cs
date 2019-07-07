@@ -1,6 +1,3 @@
-using System;
-using Microsoft.SPOT;
-using Netduino.Foundation.RTCs;
 using Netduino.Foundation.Displays;
 
 namespace PlantMonitor
