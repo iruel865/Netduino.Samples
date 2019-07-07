@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -112,9 +113,9 @@ namespace PlantMonitorApp
             {
                 LevelList.Insert(0, new HumidityModel()
                 {
-                    Date = log.Date,
                     Humidity = log.Humidity,
-                    Level = (log.Humidity >= 75) ? HIGH : (log.Humidity >= 50) ? MEDIUM : LOW
+                    Level = (log.Humidity >= 0.75) ? HIGH : (log.Humidity >= 0.5) ? MEDIUM : LOW,
+                    Date = DateTime.Now.ToString("hh:mm tt dd/MMM/yyyy")
                 });
             }
 

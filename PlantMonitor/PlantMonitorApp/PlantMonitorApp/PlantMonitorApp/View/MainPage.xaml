@@ -24,7 +24,7 @@
 
                 <Grid>
                     <Frame BackgroundColor="{StaticResource TextColor}" HasShadow="false" Padding="1">
-                        <Frame BackgroundColor="White" HasShadow="false" Padding="0">
+                        <Frame BackgroundColor="White" HasShadow="false" Padding="5">
                             <Grid Padding="10,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
