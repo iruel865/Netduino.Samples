@@ -67,7 +67,7 @@ namespace PlantMonitorGateway.ViewModels
                 return;
             IsBusy = true;
 
-            ServerList.Clear();
+            //ServerList.Clear();
 
             var servers = await plantClient.FindMapleServersAsync();
             foreach (var server in servers)
@@ -89,12 +89,12 @@ namespace PlantMonitorGateway.ViewModels
             if (SelectedServer == null)
                 return;
 
-            LevelList.Clear();
+            //LevelList.Clear();
 
             var humitidyLogs = await plantClient.GetHumidityAsync(SelectedServer);
             foreach (var log in humitidyLogs)
             {
-                int humidity = (int)log.Humidity * 100;
+                int humidity = (int) (log.Humidity * 100);
 
                 LevelList.Insert(0, new HumidityModel()
                 {
