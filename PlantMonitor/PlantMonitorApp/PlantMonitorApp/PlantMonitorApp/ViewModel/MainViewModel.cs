@@ -111,7 +111,7 @@ namespace PlantMonitorApp
             var humitidyLogs = await plantClient.GetHumidityAsync(SelectedServer);
             foreach (var log in humitidyLogs)
             {
-                int humidity = (int) log.Humidity * 100;
+                int humidity = (int) (log.Humidity * 100);
 
                 LevelList.Insert(0, new HumidityModel()
                 {
