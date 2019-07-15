@@ -13,14 +13,11 @@ namespace PlantMonitor
     {
         public static ArrayList HumidityLogs;
 
-        protected Timer _timer = null;
-        protected TimerCallback _timerCallback = null;
+        protected Timer timer = null;
+        protected TimerCallback timerCallback = null;
 
         protected RgbPwmLed rgbPwmLed;
         protected LedBarGraph ledBarGraph;
-
-        protected Timer timer = null;
-        protected TimerCallback timerCallback = null;
 
         protected MapleServer mapleServer;
         protected DisplayController displayController;
@@ -86,7 +83,7 @@ namespace PlantMonitor
         }
         void OnGetPlantHumidity(object sender, EventArgs e)
         {
-            Thread _animationThread = new Thread(() =>
+            Thread animationThread = new Thread(() =>
             {
                 displayController.DrawText("Sensing...");
 
@@ -96,13 +93,13 @@ namespace PlantMonitor
 
                 displayController.DrawText("Connected!");
             });
-            _animationThread.Start();
+            animationThread.Start();
         }
 
         void OnNetworkConnected(object sender, EventArgs e)
         {
-            _timerCallback = new TimerCallback(OnTimerInterrupt);
-            _timer = new Timer(_timerCallback, null, TimeSpan.FromTicks(0), new TimeSpan(1, 0, 0));
+            timerCallback = new TimerCallback(OnTimerInterrupt);
+            timer = new Timer(timerCallback, null, TimeSpan.FromTicks(0), new TimeSpan(1, 0, 0));
             mapleServer.Start("PlantHost", Initializer.CurrentNetworkInterface.IPAddress);            
 
             displayController.Clear(true);
