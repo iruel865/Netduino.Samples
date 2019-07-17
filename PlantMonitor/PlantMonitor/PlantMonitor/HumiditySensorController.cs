@@ -6,8 +6,8 @@ namespace PlantMonitor
 {
     public class HumiditySensorController
     {
-        protected SLH.AnalogInput _analogPort;
-        protected MSH.OutputPort _digitalPort;
+        SLH.AnalogInput _analogPort;
+        MSH.OutputPort _digitalPort;
 
         public HumiditySensorController(MSH.Cpu.Pin analogPort, MSH.Cpu.Pin digitalPort)
         {
@@ -15,23 +15,44 @@ namespace PlantMonitor
             _digitalPort = new MSH.OutputPort(digitalPort, false);
         }
 
-        public float Read()
+        float ReadRaw()
         {
-            int sample;
-            float humidity;
+            int humidityRaw = 0;
 
             _digitalPort.Write(true);
             Thread.Sleep(5);
-            sample = _analogPort.Read();
+            humidityRaw = _analogPort.Read();
             _digitalPort.Write(false);
 
-            humidity = 100 - Map(sample, 500, 1023, 0, 100);
-            return humidity;
+            return humidityRaw;
         }
 
-        protected float Map(float value, float fromLow, float fromHigh, float toLow, float toHigh)
+        float Map(float value, float fromLow, float fromHigh, float toLow, float toHigh)
         {
             return (((toHigh - toLow) * (value - fromLow)) / (fromHigh - fromLow)) - toLow;
+        }
+
+        public float Read()
+        {
+            float sample = 0;
+            float humidity;
+
+            for (int i = 0; i < 5; i++)
+            {
+                sample += (1024 - ReadRaw());
+                Thread.Sleep(200);
+            }
+
+            humidity = sample / 5;
+
+            float result = Map(humidity, 245, 675, 0, 1);
+
+            if (result > 1)
+                return 1;
+            else if (result < 0)
+                return 0.01f;
+            else
+                return result;
         }
     }
 }

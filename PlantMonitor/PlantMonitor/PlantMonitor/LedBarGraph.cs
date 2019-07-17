@@ -1,6 +1,7 @@
 using System;
 using Microsoft.SPOT.Hardware;
 using Netduino.Foundation.LEDs;
+using System.Threading;
 
 namespace PlantMonitor
 {
@@ -44,6 +45,14 @@ namespace PlantMonitor
             _leds[index].IsOn = isOn;
         }
 
+        void Reset()
+        {
+            for (int i = 1; i <= Count; i++)
+            {
+                SetLed(i - 1, false);
+            }
+        }
+
         /// <summary>
         /// Set the percentage of LEDs that are on starting from index 0
         /// </summary>
@@ -52,6 +61,8 @@ namespace PlantMonitor
         {
             if (percentage < 0 || percentage > 1)
                 throw new ArgumentOutOfRangeException();
+
+            Reset();
 
             float value = percentage * Count;
 
@@ -65,6 +76,8 @@ namespace PlantMonitor
                 {
                     SetLed(i - 1, false);
                 }
+
+                Thread.Sleep(100);
             }
         }
     }

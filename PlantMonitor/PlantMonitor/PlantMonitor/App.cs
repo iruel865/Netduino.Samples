@@ -13,15 +13,17 @@ namespace PlantMonitor
     {
         public static ArrayList HumidityLogs;
 
-        protected Timer timer = null;
-        protected TimerCallback timerCallback = null;
+        float humidity;
 
-        protected RgbPwmLed rgbPwmLed;
-        protected LedBarGraph ledBarGraph;
+        Timer timer = null;
+        TimerCallback timerCallback = null;
 
-        protected MapleServer mapleServer;
-        protected DisplayController displayController;
-        protected HumiditySensorController humiditySensorController;
+        RgbPwmLed rgbPwmLed;
+        LedBarGraph ledBarGraph;
+
+        MapleServer mapleServer;
+        DisplayController displayController;
+        HumiditySensorController humiditySensorController;
 
         public App()
         {
@@ -32,8 +34,6 @@ namespace PlantMonitor
 
             Initializer.InitializeNetwork();
             Initializer.NetworkConnected += OnNetworkConnected;
-
-            //AppLoop();
         }
         void InitializePeripherals()
         {
@@ -69,8 +69,8 @@ namespace PlantMonitor
 
             humiditySensorController = new HumiditySensorController
             (
-                N.Pins.GPIO_PIN_A0,
-                N.Pins.GPIO_PIN_D13
+                analogPort: N.Pins.GPIO_PIN_A0,
+                digitalPort: N.Pins.GPIO_PIN_D13
             );
         }
         void InitializeWebServer()
@@ -81,26 +81,12 @@ namespace PlantMonitor
             mapleServer = new MapleServer();
             mapleServer.AddHandler(handler);
         }
-        void OnGetPlantHumidity(object sender, EventArgs e)
-        {
-            Thread animationThread = new Thread(() =>
-            {
-                displayController.DrawText("Sensing...");
-
-                rgbPwmLed.StartBlink(Netduino.Foundation.Color.Orange);
-                Thread.Sleep(1000);
-                rgbPwmLed.SetColor(Netduino.Foundation.Color.Green);
-
-                displayController.DrawText("Connected!");
-            });
-            animationThread.Start();
-        }
 
         void OnNetworkConnected(object sender, EventArgs e)
         {
             timerCallback = new TimerCallback(OnTimerInterrupt);
             timer = new Timer(timerCallback, null, TimeSpan.FromTicks(0), new TimeSpan(1, 0, 0));
-            mapleServer.Start("PlantHost", Initializer.CurrentNetworkInterface.IPAddress);            
+            mapleServer.Start("PlantHost", Initializer.CurrentNetworkInterface.IPAddress);
 
             displayController.Clear(true);
             displayController.DrawText("Connected!");
@@ -109,59 +95,34 @@ namespace PlantMonitor
             rgbPwmLed.SetColor(Netduino.Foundation.Color.Green);
         }
 
-        void OnTimerInterrupt(object state)
+        void OnGetPlantHumidity(object sender, EventArgs e)
         {
-            float sample = 0;
-            for (int i = 0; i < 5; i++)
-            {
-                sample += (humiditySensorController.Read() / 100);
-                Thread.Sleep(200);
-            }
+            displayController.DrawText("Sensing...");
 
-            float humidity = sample / 5;
+            rgbPwmLed.StartBlink(Netduino.Foundation.Color.Orange);
+            Thread.Sleep(1000);
+            rgbPwmLed.SetColor(Netduino.Foundation.Color.Green);
 
-            if (humidity > 1)
-                ledBarGraph.Percentage = 1;
-            else if (humidity < 0)
-                ledBarGraph.Percentage = 0;
-            else
-                ledBarGraph.Percentage = humidity;
-
-            HumidityLogs.Clear();
-            HumidityLogs.Add(new HumidityLog()
-            {               
-                Humidity = humidity
-            });
-
-            Thread _animationThread = new Thread(() =>
-            {
-                rgbPwmLed.StartBlink(Netduino.Foundation.Color.Blue);
-                Thread.Sleep(1000);
-                rgbPwmLed.SetColor(Netduino.Foundation.Color.Green);
-            });
-            _animationThread.Start();
+            UpdateHumidity();
         }
 
-        //void AppLoop()
-        //{
-        //    Thread thread = new Thread(() =>
-        //    {
-        //        while (true)
-        //        {
-        //            float humidity = (humiditySensorController.Read() / 100);
+        void OnTimerInterrupt(object state)
+        {
+            rgbPwmLed.StartBlink(Netduino.Foundation.Color.Blue);
+            Thread.Sleep(1000);
+            rgbPwmLed.SetColor(Netduino.Foundation.Color.Green);
 
-        //            if (humidity > 1)
-        //                ledBarGraph.Percentage = 1;
-        //            else if (humidity < 0)
-        //                ledBarGraph.Percentage = 0;
-        //            else
-        //                ledBarGraph.Percentage = humidity;
+            UpdateHumidity();
+        }
 
-        //            Debug.Print("Humidity = " + humidity);
-        //            Thread.Sleep(500);
-        //        }
-        //    });
-        //    thread.Start();
-        //}
+        void UpdateHumidity()
+        {
+            humidity = (humiditySensorController.Read());
+            HumidityLogs.Clear();
+            HumidityLogs.Add(new HumidityLog() { Humidity = humidity });
+            displayController.DrawText(((int)(humidity*100))+"%");
+
+            ledBarGraph.Percentage = humidity;
+        }
     }
 }
