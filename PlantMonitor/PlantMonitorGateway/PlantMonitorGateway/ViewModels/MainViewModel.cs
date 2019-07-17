@@ -67,11 +67,16 @@ namespace PlantMonitorGateway.ViewModels
                 return;
             IsBusy = true;
 
-            //ServerList.Clear();
+            ServerList.Clear();
 
             var servers = await plantClient.FindMapleServersAsync();
             foreach (var server in servers)
-                ServerList.Add(server);
+            {
+                if (server.Name.Contains("Plant"))
+                {
+                    ServerList.Add(server);
+                }
+            }
 
             if (servers.Count > 0)
             {
@@ -89,7 +94,7 @@ namespace PlantMonitorGateway.ViewModels
             if (SelectedServer == null)
                 return;
 
-            //LevelList.Clear();
+            LevelList.Clear();
 
             var humitidyLogs = await plantClient.GetHumidityAsync(SelectedServer);
             foreach (var log in humitidyLogs)
@@ -104,56 +109,7 @@ namespace PlantMonitorGateway.ViewModels
                 });
             }
 
-            //LevelList.Add(new HumidityModel() { Date = "10:00 AM 28/Aug/2018", Humidity = 77, Level = HIGH });
-            //LevelList.Add(new HumidityModel() { Date = "10:00 AM 27/Aug/2018", Humidity = 80, Level = HIGH });
-            //LevelList.Add(new HumidityModel() { Date = "10:00 AM 26/Aug/2018", Humidity = 47, Level = LOW });
-            //LevelList.Add(new HumidityModel() { Date = "10:00 AM 25/Sep/2018", Humidity = 30, Level = LOW });
-            //LevelList.Add(new HumidityModel() { Date = "10:00 AM 24/Aug/2018", Humidity = 64, Level = MEDIUM });
-            //LevelList.Add(new HumidityModel() { Date = "10:00 AM 23/Aug/2018", Humidity = 55, Level = MEDIUM });
-            //LevelList.Add(new HumidityModel() { Date = "10:00 AM 22/Sep/2018", Humidity = 90, Level = HIGH });
-            //LevelList.Add(new HumidityModel() { Date = "10:00 AM 21/Aug/2018", Humidity = 61, Level = MEDIUM });
-            //LevelList.Add(new HumidityModel() { Date = "10:00 AM 20/Aug/2018", Humidity = 57, Level = MEDIUM });
-            //LevelList.Add(new HumidityModel() { Date = "10:00 AM 19/Aug/2018", Humidity = 51, Level = MEDIUM });
-            //LevelList.Add(new HumidityModel() { Date = "10:00 AM 18/Aug/2018", Humidity = 47, Level = LOW });
-            //LevelList.Add(new HumidityModel() { Date = "10:00 AM 17/Aug/2018", Humidity = 42, Level = LOW });
-            //LevelList.Add(new HumidityModel() { Date = "10:00 AM 16/Aug/2018", Humidity = 38, Level = LOW });
-            //LevelList.Add(new HumidityModel() { Date = "10:00 AM 15/Sep/2018", Humidity = 30, Level = LOW });
-
             IsRefreshing = false;
         }
-
-        //string _someText;
-        //public string SomeText
-        //{
-        //    get => _someText;
-        //    set { _someText = value; OnPropertyChanged(nameof(SomeText)); }
-        //}
-
-        //readonly ObservableCollection<string> _history = new ObservableCollection<string>();
-        //public IEnumerable<string> History
-        //{
-        //    get => _history;
-        //}
-
-        //readonly TextConverter _textConverter = new TextConverter(s => s.ToUpper());
-        //public ICommand ConvertTextCommand
-        //{
-        //    get => new BaseCommand(ConvertText);
-        //}
-
-        //void ConvertText()
-        //{
-        //    if (string.IsNullOrWhiteSpace(SomeText))
-        //        return;
-
-        //    AddToHistory(_textConverter.ConvertText(SomeText));
-        //    SomeText = string.Empty;
-        //}
-
-        //void AddToHistory(string item)
-        //{
-        //    if (!_history.Contains(item))
-        //        _history.Add(item);
-        //}
     }
 }
