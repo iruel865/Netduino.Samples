@@ -73,7 +73,12 @@ namespace PlantMonitorApp
 
             var servers = await plantClient.FindMapleServersAsync();
             foreach (var server in servers)
-                ServerList.Add(server);
+            {
+                if (server.Name.Contains("Plant"))
+                {
+                    ServerList.Add(server);
+                }
+            }
 
             if (servers.Count > 0)
             {
@@ -96,7 +101,7 @@ namespace PlantMonitorApp
             var humitidyLogs = await plantClient.GetHumidityAsync(SelectedServer);
             foreach (var log in humitidyLogs)
             {
-                int humidity = (int) (log.Humidity);
+                int humidity = (int) (log.Humidity * 100);
 
                 LevelList.Insert(0, new HumidityModel()
                 {
