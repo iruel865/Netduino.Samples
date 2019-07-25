@@ -13,5 +13,7 @@ namespace PlantMonitorGateway
     /// </summary>
     public partial class App : Application
     {
+        public const string LOG_FILE_NAME = "plant_log.json";
+
     }
 }

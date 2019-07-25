@@ -10,10 +10,6 @@
     d:DesignWidth="300"
     d:DataContext="{d:DesignInstance ViewModels:MainViewModel}">
 
-    <UserControl.InputBindings>
-        <KeyBinding Key="Enter" Command="{Binding ConvertTextCommand}"/>
-    </UserControl.InputBindings>
-
     <Grid Background="White">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

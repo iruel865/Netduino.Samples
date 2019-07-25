@@ -1,6 +1,12 @@
 ﻿using Maple;
+using Newtonsoft.Json;
+using PlantMonitorGateway.Azure;
+using PlantMonitorGateway.IO;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -19,13 +25,6 @@ namespace PlantMonitorGateway.ViewModels
         {
             get => _isBusy;
             set { _isBusy = value; OnPropertyChanged(nameof(IsBusy)); }
-        }
-
-        bool _isRefreshing;
-        public bool IsRefreshing
-        {
-            get => _isRefreshing;
-            set { _isRefreshing = value; OnPropertyChanged(nameof(IsRefreshing)); }
         }
 
         bool _isEmpty;
@@ -53,14 +52,64 @@ namespace PlantMonitorGateway.ViewModels
             plantClient = new RestClient();
 
             LevelList = new ObservableCollection<HumidityModel>();
+
             ServerList = new ObservableCollection<ServerItem>();
 
             GetHumidityCommand = new BaseCommand(async () => await GetHumidityCommandExecute());
             RefreshServersCommand = new BaseCommand(async () => await GetServersAsync());
 
-            GetServersAsync();
+            MainAsync();
         }
 
+        async Task MainAsync()
+        {
+            Debug.WriteLine("Initializing........");
+            await InitializeAsync();
+            Debug.WriteLine("done");
+
+            Debug.WriteLine("Loading........");
+            await LoadAsync();
+            Debug.WriteLine("done");
+
+            Debug.WriteLine("Getting servers........");
+            await GetServersAsync();
+            Debug.WriteLine("done");
+
+
+            if (SelectedServer != null)
+            {
+                Debug.WriteLine("Sensing........");
+                await GetHumidityCommandExecute();
+                Debug.WriteLine("done");
+            }
+
+            Debug.WriteLine("Saving........");
+            await SaveAsync();
+            Debug.WriteLine("done");
+        }
+
+        async Task InitializeAsync()
+        {
+            FileManager.Initialize();
+            await BlobManager.Initialize();
+        }
+
+        async Task SaveAsync()
+        {
+            FileManager.SaveLog(JsonConvert.SerializeObject(LevelList));
+            await BlobManager.UploadLogFileAsync();
+        }
+
+        async Task LoadAsync()
+        {
+            await BlobManager.DownloadLogFileAsync();
+            string json = FileManager.ReadFile();
+
+            var list = JsonConvert.DeserializeObject<List<HumidityModel>>(json);
+            foreach (var item in list)
+                LevelList.Add(item);
+        }
+        
         async Task GetServersAsync()
         {
             if (IsBusy)
@@ -79,10 +128,7 @@ namespace PlantMonitorGateway.ViewModels
             }
 
             if (servers.Count > 0)
-            {
                 SelectedServer = ServerList[0];
-                await GetHumidityCommandExecute();
-            }
 
             IsEmpty = servers.Count == 0;
 
@@ -94,12 +140,10 @@ namespace PlantMonitorGateway.ViewModels
             if (SelectedServer == null)
                 return;
 
-            LevelList.Clear();
-
             var humitidyLogs = await plantClient.GetHumidityAsync(SelectedServer);
             foreach (var log in humitidyLogs)
             {
-                int humidity = (int) (log.Humidity * 100);
+                int humidity = (int)(log.Humidity * 100);
 
                 LevelList.Insert(0, new HumidityModel()
                 {
@@ -108,8 +152,6 @@ namespace PlantMonitorGateway.ViewModels
                     Date = DateTime.Now.ToString("hh:mm tt dd/MMM/yyyy")
                 });
             }
-
-            IsRefreshing = false;
         }
     }
 }
