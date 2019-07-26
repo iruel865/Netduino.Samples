@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Maple;
+using Newtonsoft.Json;
+using PlantMonitorApp.Azure;
 using Xamarin.Forms;
 
 namespace PlantMonitorApp
@@ -57,10 +61,28 @@ namespace PlantMonitorApp
             LevelList = new ObservableCollection<HumidityModel>();
             ServerList = new ObservableCollection<ServerItem>();
 
-            GetHumidityCommand = new Command(async (s) => await GetHumidityCommandExecute());
+            GetHumidityCommand = new Command(async (s) => await LoadAsync());
             RefreshServersCommand = new Command(async () => await GetServersAsync());
 
-            GetServersAsync();
+            LoadAsync();
+        }
+
+        async Task LoadAsync()
+        {
+            if (IsBusy)
+                return;
+            IsBusy = true;
+
+            await BlobManager.DownloadLogFileAsync();
+            string json = File.ReadAllText(Environment.GetFolderPath(Environment.SpecialFolder.Personal) + App.LOG_FILE_NAME);
+            var list = JsonConvert.DeserializeObject<List<HumidityModel>>(json);
+
+            LevelList.Clear();
+            foreach (var item in list)
+                LevelList.Add(item);
+
+            IsBusy = false;
+            IsRefreshing = false;
         }
 
         async Task GetServersAsync()

@@ -1,11 +1,11 @@
-﻿using System;
-using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
+﻿using Xamarin.Forms;
 
 namespace PlantMonitorApp
 {
     public partial class App : Application
     {
+        public const string LOG_FILE_NAME = "plant_log.json";
+
         public App()
         {
             InitializeComponent();
