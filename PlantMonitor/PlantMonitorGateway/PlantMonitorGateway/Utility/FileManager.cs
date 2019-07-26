@@ -12,15 +12,11 @@ namespace PlantMonitorGateway.IO
         public static string ReadFile()
         {            
             return File.ReadAllText(App.LOG_FILE_NAME);
-
-            //var list = JsonConvert.DeserializeObject<List<HumidityModel>>(result);
         }
 
         public static void SaveLog(string jsonData)
         {
             File.WriteAllText(App.LOG_FILE_NAME, jsonData);
-
-            //string result = JsonConvert.SerializeObject(LevelList);
         }
     }
 }

@@ -24,10 +24,10 @@
             Content="Plant Soil Humidity Monitor" FontWeight="Bold" />
 
         <Label Grid.Row="1" Foreground="#555" Margin="5,0,5,0" FontSize="10"
-            Content="Choose a plant:" />
+            Content="Status:" />
 
-        <ComboBox Grid.Row="2" ItemsSource="{Binding ServerList}" 
-            DisplayMemberPath="Name" SelectedItem="{Binding SelectedServer}" Margin="5" />
+        <Label Grid.Row="2" Foreground="#555" Margin="15,0,15,0" FontSize="20"
+            Content="{Binding Status}" FontWeight="Bold" />
 
         <Label Grid.Row="3" Foreground="#555" Margin="5,0,5,0" FontSize="10"
             Content="Soil Humidity Level" />

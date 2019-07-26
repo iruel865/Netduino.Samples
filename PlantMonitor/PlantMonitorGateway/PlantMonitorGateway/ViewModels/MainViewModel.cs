@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -19,6 +19,8 @@ namespace PlantMonitorGateway.ViewModels
         public static int LOW = 3;
 
         RestClient plantClient;
+        Timer _timer = null;
+        TimerCallback _timerCallback = null;
 
         bool _isBusy;
         public bool IsBusy
@@ -32,6 +34,13 @@ namespace PlantMonitorGateway.ViewModels
         {
             get => _isEmpty;
             set { _isEmpty = value; OnPropertyChanged(nameof(IsEmpty)); }
+        }
+
+        string _status;
+        public string Status
+        {
+            get => _status;
+            set { _status = value; OnPropertyChanged(nameof(Status)); }
         }
 
         ServerItem _selectedServer;
@@ -63,29 +72,22 @@ namespace PlantMonitorGateway.ViewModels
 
         async Task MainAsync()
         {
-            Debug.WriteLine("Initializing........");
-            await InitializeAsync();
-            Debug.WriteLine("done");
+            //Status = "Initializing.........";
+            //await InitializeAsync();
+            //Status += "done";
 
-            Debug.WriteLine("Loading........");
+            Status = "Loading.........";
             await LoadAsync();
-            Debug.WriteLine("done");
+            Status += "done";
+            await Task.Delay(1000);
 
-            Debug.WriteLine("Getting servers........");
+            Status = "Getting servers.........";
             await GetServersAsync();
-            Debug.WriteLine("done");
+            Status += "done";
+            await Task.Delay(1000);
 
-
-            if (SelectedServer != null)
-            {
-                Debug.WriteLine("Sensing........");
-                await GetHumidityCommandExecute();
-                Debug.WriteLine("done");
-            }
-
-            Debug.WriteLine("Saving........");
-            await SaveAsync();
-            Debug.WriteLine("done");
+            _timerCallback = new TimerCallback(OnTimerInterrupt);
+            _timer = new Timer(_timerCallback, null, TimeSpan.FromTicks(0), new TimeSpan(1, 0, 0));
         }
 
         async Task InitializeAsync()
@@ -109,7 +111,25 @@ namespace PlantMonitorGateway.ViewModels
             foreach (var item in list)
                 LevelList.Add(item);
         }
-        
+
+        async void OnTimerInterrupt(object state)
+        {
+            if (SelectedServer != null)
+            {
+                Status = "Sensing.........";
+                await GetHumidityCommandExecute();
+                Status += "done";
+                await Task.Delay(1000);
+            }
+
+            Status ="Saving.........";
+            await SaveAsync();
+            Status += "done";
+            await Task.Delay(1000);
+
+            Status = "Last update: " + DateTime.Now;
+        }
+
         async Task GetServersAsync()
         {
             if (IsBusy)
@@ -140,18 +160,23 @@ namespace PlantMonitorGateway.ViewModels
             if (SelectedServer == null)
                 return;
 
-            var humitidyLogs = await plantClient.GetHumidityAsync(SelectedServer);
-            foreach (var log in humitidyLogs)
-            {
-                int humidity = (int)(log.Humidity * 100);
+            var humitidyLogs = await plantClient.GetHumidityAsync(SelectedServer).ConfigureAwait(true);
 
-                LevelList.Insert(0, new HumidityModel()
-                {
-                    Humidity = humidity,
-                    Level = (humidity >= 75) ? HIGH : (humidity >= 50) ? MEDIUM : LOW,
-                    Date = DateTime.Now.ToString("hh:mm tt dd/MMM/yyyy")
-                });
-            }
+            await App.Current.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                 foreach (var log in humitidyLogs)
+                 {
+                     int humidity = (int)(log.Humidity * 100);
+
+                     LevelList.Insert(0, new HumidityModel()
+                     {
+                         Humidity = humidity,
+                         Level = (humidity >= 75) ? HIGH : (humidity >= 50) ? MEDIUM : LOW,
+                         Date = DateTime.Now.ToString("hh:mm tt dd/MMM/yyyy")
+                     });
+                 }
+             }));
+            
         }
     }
 }
