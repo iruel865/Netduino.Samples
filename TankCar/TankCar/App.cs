@@ -1,6 +1,7 @@
+using System;
 using Microsoft.SPOT;
-using SecretLabs.NETMF.Hardware.Netduino;
 using Netduino.Foundation.LEDs;
+using SecretLabs.NETMF.Hardware.Netduino;
 using Netduino.Foundation.Network;
 using Maple;
 
@@ -19,6 +20,7 @@ namespace TankCar
         public App()
         {
             InitializePeripherals();
+            InitializeWebServer();
 
             Initializer.InitializeNetwork();
             Initializer.NetworkConnected += OnNetworkConnected;
@@ -26,6 +28,8 @@ namespace TankCar
 
         void InitializePeripherals()
         {
+            Debug.Print("Hello World!");
+
             ledRed = new Led(Pins.GPIO_PIN_D13);
             ledGreen = new Led(Pins.GPIO_PIN_D12);
             ledBlue = new Led(Pins.GPIO_PIN_D11);

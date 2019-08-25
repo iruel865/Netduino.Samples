@@ -5,7 +5,7 @@ namespace TankCar
     public class TankController
     {
         const float STOP = 0.75f;
-        const float FORWARD = 0.94f;        
+        const float FORWARD = 0.94f;
         const float BACKWARD = 0.57f;
 
         protected PWM motorPwmLeft;
